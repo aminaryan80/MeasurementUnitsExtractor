@@ -1,4 +1,3 @@
-import json
 import re
 from dataclasses import dataclass, field
 from typing import List
@@ -6,6 +5,8 @@ from typing import List
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+
+from unit_cleaner import UnitCleaner
 
 BASE_URL = 'https://www.bahesab.ir/calc/unit/'
 QUANTITY_URL = 'https://www.bahesab.ir/cdn/unit/'
@@ -26,12 +27,12 @@ class Quantity:
 
 
 def save_units(quantities):
-    data = dict(id=list(), name=list(), all_names=list())
+    data = dict(quantity=list(), unit=list(), all_units=list())
     for quantity in quantities:
         for unit in quantity.units:
-            data['id'].append(quantity.english_name)
-            data['name'].append(unit.name)
-            data['all_names'].append(json.dumps(unit.all_names, ensure_ascii=False))
+            data['quantity'].append(quantity.english_name)
+            data['unit'].append(unit.name)
+            data['all_units'].append(unit.all_names)
     df = pd.DataFrame(data)
     df.to_csv(UNIT_FILE, index=False)
 
@@ -43,8 +44,7 @@ def _get_quantity_request_data(quantity):
         'acceleration': 'shetab',
         'mass flow': 'debi',
         'volumetric flow': 'debi-v',
-        'digital storage': 'data-storage',
-        'si': 'pishvand'
+        'digital storage': 'data-storage'
     }
     name = quantity.english_name.lower()
     return {'string_o': f'{{"a":1,"b":"{name_map.get(name, name)}","c":0,"d":0,"e":0}}'}
@@ -58,6 +58,7 @@ class Scraper:
         })
         self.quantities = list()
         self.pattern = '\\([A-Za-z\\d\\-\\s./²³μ]+\\)'
+        self.unit_cleaner = UnitCleaner()
 
     def _get_quantities(self):
         response = self.session.get(BASE_URL)
@@ -69,8 +70,6 @@ class Scraper:
         for option in select_tag.find_all('option'):
             english_name = (re.findall(self.pattern, option.text) or [''])[0]
             name = option.text.replace(english_name, '').strip()
-            if not english_name:
-                english_name = '(SI)'
             quantities.append(Quantity(name, english_name[1:-1]))
         return quantities
 
@@ -84,6 +83,7 @@ class Scraper:
         if not response.ok:
             raise Exception('Failed to retrieve data.')
         soup = BeautifulSoup(response.json()['v'], 'html.parser')
+
         units = list()
         for option in soup.find_all('option'):
             english_name = (re.findall(self.pattern, option.text) or [''])[0]
@@ -96,6 +96,7 @@ class Scraper:
             all_names = [name, *other_names_list]
             if english_name[1:-1]:
                 all_names.append(english_name[1:-1])
+            name, all_names = self.unit_cleaner.clean(name, all_names)
             unit = Unit(name, all_names)
             units.append(unit)
         quantity.units = units
