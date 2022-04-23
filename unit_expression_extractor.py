@@ -72,7 +72,7 @@ class UnitExpressionExtractor:
     def _get_units(self):
         df = pd.read_csv(UNIT_FILE)
         for row in df.iloc:
-            all_units = json.loads(row.all_units)
+            all_units = json.loads(row.all_names)
             for unit in all_units:
                 unit: str
                 yield False, unit, unit, row.quantity

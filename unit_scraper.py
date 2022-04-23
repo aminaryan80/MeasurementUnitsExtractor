@@ -1,3 +1,4 @@
+import json
 import re
 from dataclasses import dataclass, field
 from typing import List, Dict
@@ -36,7 +37,7 @@ def save_units(quantities):
             data['quantity'].append(quantity.english_name)
             data['unit'].append(unit.name)
             data['conversion_factor'].append(unit.conversion_factor)
-            data['all_names'].append(unit.all_names)
+            data['all_names'].append(json.dumps(unit.all_names, ensure_ascii=False))
     df = pd.DataFrame(data)
     df.to_csv(UNIT_FILE, index=False)
 
