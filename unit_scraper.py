@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-from unit_cleaner import UnitCleaner
+from utils.unit_cleaner import UnitCleaner
 
 BASE_URL = 'https://www.bahesab.ir/calc/unit/'
 QUANTITY_URL = 'https://www.bahesab.ir/cdn/unit/'

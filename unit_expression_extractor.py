@@ -156,10 +156,10 @@ class UnitExpressionExtractor:
         return None, -1, -1
 
 
-# pprint(UnitExpressionExtractor().run('علی ۳.۵ کیلو گرم آرد خرید.'))
-# pprint(UnitExpressionExtractor().run('علی باتری خود را هشتاد و پنج صدم وات شارژ کرد.'))
-# pprint(UnitExpressionExtractor().run('علی باتری خود را صد و بیست و سه کیلو وات شارژ کرد.'))
-# pprint(UnitExpressionExtractor().run('علی ۳.۵ گرم باتری آورد.'))
+pprint(UnitExpressionExtractor().run('علی ۳.۵ کیلو گرم آرد خرید.'))
+pprint(UnitExpressionExtractor().run('علی باتری خود را هشتاد و پنج صدم وات شارژ کرد.'))
+pprint(UnitExpressionExtractor().run('علی باتری خود را صد و بیست و سه کیلو وات شارژ کرد.'))
+pprint(UnitExpressionExtractor().run('علی ۳.۵ گرم باتری آورد.'))
 pprint(UnitExpressionExtractor().run('علی ۳.۵ کیلوگرم آرد خرید و باتری خود را هشتاد و پنج صدم وات شارژ کرد.'))
-# pprint(UnitExpressionExtractor().run('جرم یک شهاب سنگ ۲۵۰ تن است.'))
-# pprint(UnitExpressionExtractor().run('یک خودرو با سرعت زیاد از ما سبقت گرفت.'))
+pprint(UnitExpressionExtractor().run('جرم یک شهاب سنگ ۲۵۰ تن است.'))
+pprint(UnitExpressionExtractor().run('یک خودرو با سرعت زیاد از ما سبقت گرفت.'))

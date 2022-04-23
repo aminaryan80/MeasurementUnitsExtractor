@@ -39,31 +39,3 @@ class UnitCleaner:
                     value_list = value_list[:i] + [V_SPACE] + value_list[i:]
                     offset += 1
         return ''.join(value_list)
-    #
-    # def _clean_length(self, value: str) -> str:
-    #     value = value.replace(V_SPACE, SPACE)
-    #     value_array = list(value)
-    #     try:
-    #         index = value.index('متر')
-    #         if value[index - 1] == SPACE:
-    #             value_array[index - 1] = V_SPACE
-    #         else:
-    #             value_array = value_array[0:index] + [V_SPACE] + value_array[index:]
-    #         return ''.join(value_array)
-    #     except ValueError:
-    #         pass
-    #     return value
-    #
-    # def _clean_weight(self, value: str) -> str:
-    #     value = value.replace(V_SPACE, SPACE)
-    #     value_array = list(value)
-    #     try:
-    #         index = value.index('گرم')
-    #         if value[index - 1] == SPACE:
-    #             value_array[index - 1] = V_SPACE
-    #         else:
-    #             value_array = value_array[0:index] + [V_SPACE] + value_array[index:]
-    #         return ''.join(value_array)
-    #     except ValueError:
-    #         pass
-    #     return value
