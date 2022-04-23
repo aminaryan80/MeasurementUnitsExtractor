@@ -6,9 +6,10 @@ from typing import List, Tuple, Any
 import pandas as pd
 from hazm import POSTagger, word_tokenize
 
-from utils.number_extractor import FixedNumberExtractor
-from utils.unit_cleaner import V_SPACE, SPACE
 from unit_scraper import UNIT_FILE
+from utils.number_extractor import FixedNumberExtractor
+from utils.quantity_translator import translate_quantity
+from utils.unit_cleaner import V_SPACE, SPACE
 
 descriptive_units = 'زیاد|کم'
 descriptive_prefix = 'بسیار|خیلی'
@@ -29,7 +30,7 @@ class UnitExpressionExtractor:
     def run(self, input_sentence):
         print(input_sentence)
         result = []
-        spans = self._extract_spans(input_sentence)
+        spans = self._extract_result(input_sentence)
         for i, span in enumerate(spans):
             result.append({
                 'type': span[1],
@@ -41,7 +42,7 @@ class UnitExpressionExtractor:
             })
         return result
 
-    def _extract_spans(self, input_sentence):
+    def _extract_result(self, input_sentence):
         spans = set()
         founded_unit_spans = set()
         tagged = self.tagger.tag(word_tokenize(input_sentence))
@@ -49,41 +50,23 @@ class UnitExpressionExtractor:
             if unit not in input_sentence:
                 continue
             unit_uuid = str(uuid.uuid4())
-            is_sub_unit = False
-            for _uuid, _unit, start, end in founded_unit_spans.copy():
-                unit_start, unit_end = input_sentence.index(unit), input_sentence.index(unit) + len(unit)
-                if unit_start < end and unit_end > start:
-                    if unit_end - unit_start > end - start:
-                        founded_unit_spans.remove((_uuid, _unit, start, end))
-                        spans.remove([x for x in spans if x[0] == _uuid][0])
-                        continue
-                    is_sub_unit = True
-                    break
+            is_sub_unit = self._is_there_sub_unit(founded_unit_spans, spans, input_sentence, unit)
             if is_sub_unit:
                 continue
-            last_part_of_unit = unit
-            if is_spaced:
-                first_part_of_unit = unit.split()[0]
-                last_part_of_unit = unit.split()[-1]
-                first_part_of_unit_pos = [(i, *x) for i, x in enumerate(tagged) if first_part_of_unit == x[0]][0]
-            unit_pos = [(i, *x) for i, x in enumerate(tagged) if last_part_of_unit == x[0]]
+            unit_pos, unit_i, start_i = self._get_indexes(
+                founded_unit_spans,
+                input_sentence,
+                tagged,
+                unit,
+                unit_uuid,
+                is_spaced
+            )
             if unit_pos:
-                founded_unit_spans.add(
-                    (unit_uuid, unit, input_sentence.index(unit), input_sentence.index(unit) + len(unit)))
-                unit_pos = unit_pos[0]
-                i = unit_pos[0]
-                start_i = unit_pos[0]
-                if is_spaced:
-                    start_i = first_part_of_unit_pos[0]
                 amount, amount_i = self._get_amount_part(tagged, start_i)
-                pos_of_next_word = tagged[i + 1][1]
-                item = ''
-                if pos_of_next_word == 'N':
-                    if not self._is_next_verb_compound(tagged, i):
-                        item = tagged[i + 1][0]
+                item = self._get_item(tagged, unit_i)
                 amount = self.extract_number(amount)
-                marker, span = self._get_marker_and_span(tagged, item, i, amount_i)
-                spans.add((unit_uuid, quantity, amount, unit, item, marker, span))
+                marker, span = self._get_marker_and_span(tagged, item, unit_i, amount_i)
+                spans.add((unit_uuid, translate_quantity(quantity), amount, unit, item, marker, span))
         return spans
 
     def _get_units(self):
@@ -133,9 +116,50 @@ class UnitExpressionExtractor:
         sentence.reverse()
         return (start_span, end_span - 1), ' '.join(sentence)
 
+    def _is_there_sub_unit(self, founded_unit_spans, spans, input_sentence, unit):
+        is_sub_unit = False
+        for _uuid, _unit, start, end in founded_unit_spans.copy():
+            unit_start, unit_end = input_sentence.index(unit), input_sentence.index(unit) + len(unit)
+            if unit_start < end and unit_end > start:
+                if unit_end - unit_start > end - start:
+                    founded_unit_spans.remove((_uuid, _unit, start, end))
+                    spans.remove([x for x in spans if x[0] == _uuid][0])
+                    continue
+                is_sub_unit = True
+                break
+        return is_sub_unit
+
+    def _get_item(self, tagged, i):
+        pos_of_next_word = tagged[i + 1][1]
+        item = ''
+        if pos_of_next_word == 'N':
+            if not self._is_next_verb_compound(tagged, i):
+                item = tagged[i + 1][0]
+        return item
+
+    def _get_indexes(self, founded_unit_spans, input_sentence, tagged, unit, unit_uuid, is_spaced):
+        last_part_of_unit = unit
+        if is_spaced:
+            last_part_of_unit = unit.split()[-1]
+        unit_pos = [(i, *x) for i, x in enumerate(tagged) if last_part_of_unit == x[0]]
+        if unit_pos:
+            founded_unit_spans.add(
+                (unit_uuid, unit, input_sentence.index(unit), input_sentence.index(unit) + len(unit)))
+            unit_pos = unit_pos[0]
+            unit_i = unit_pos[0]
+            start_i = unit_pos[0]
+            if is_spaced:
+                first_part_of_unit = unit.split()[0]
+                first_part_of_unit_pos = [(i, *x) for i, x in enumerate(tagged) if first_part_of_unit == x[0]][0]
+                start_i = first_part_of_unit_pos[0]
+            return unit_pos, unit_i, start_i
+        return None, -1, -1
+
 
 # pprint(UnitExpressionExtractor().run('علی ۳.۵ کیلو گرم آرد خرید.'))
 # pprint(UnitExpressionExtractor().run('علی باتری خود را هشتاد و پنج صدم وات شارژ کرد.'))
-pprint(UnitExpressionExtractor().run('علی باتری خود را صد و بیست و سه کیلو وات شارژ کرد.'))
-pprint(UnitExpressionExtractor().run('علی ۳.۵ گرم باتری آورد.'))
+# pprint(UnitExpressionExtractor().run('علی باتری خود را صد و بیست و سه کیلو وات شارژ کرد.'))
+# pprint(UnitExpressionExtractor().run('علی ۳.۵ گرم باتری آورد.'))
 pprint(UnitExpressionExtractor().run('علی ۳.۵ کیلوگرم آرد خرید و باتری خود را هشتاد و پنج صدم وات شارژ کرد.'))
+# pprint(UnitExpressionExtractor().run('جرم یک شهاب سنگ ۲۵۰ تن است.'))
+# pprint(UnitExpressionExtractor().run('یک خودرو با سرعت زیاد از ما سبقت گرفت.'))

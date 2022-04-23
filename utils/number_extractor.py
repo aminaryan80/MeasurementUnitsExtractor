@@ -11,11 +11,14 @@ class FixedNumberExtractor(NumberExtractor):
     def extract_number(self, value):
         for keyword in FLOATING_POINTS_KEYWORDS.keys():
             if keyword in value:
-                number = NumberExtractor().run(value.replace(keyword, '').strip())
-                if not number:
+                numbers = NumberExtractor().run(value.replace(keyword, '').strip())
+                if not numbers:
                     raise ValueError('This is not a number!')
-                number = float(number[0]['value'])
-                number *= FLOATING_POINTS_KEYWORDS[keyword]
+                number = float(numbers[0]['value'])
+                if len(numbers) > 1:
+                    number += float(numbers[1]['value']) * FLOATING_POINTS_KEYWORDS[keyword]
+                else:
+                    number *= FLOATING_POINTS_KEYWORDS[keyword]
                 break
         else:
             number = NumberExtractor().run(value)
