@@ -1,4 +1,4 @@
-QUANTITY_TRANSLATES = {
+QUANTITIES = {
     'Length': 'طول',
     'Weight': 'وزن',
     'Pressure': 'فشار',
@@ -23,6 +23,6 @@ QUANTITY_TRANSLATES = {
 
 
 def translate_quantity(quantity: str):
-    if quantity in QUANTITY_TRANSLATES.keys():
-        return QUANTITY_TRANSLATES[quantity]
+    if quantity in QUANTITIES.keys():
+        return QUANTITIES[quantity]
     return quantity
