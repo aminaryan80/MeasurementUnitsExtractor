@@ -41,8 +41,10 @@ class UnitExpressionExtractor:
             })
         if do_conversion:
             for r in result:
+                if r['unit'] == '':
+                    continue
                 quantity = translate_quantity_to_english(r['type'])
-                converted_units = self._get_units_quantity(quantity, r['amount'], r['true_form_unit'])
+                converted_units = self._get_units_quantity(quantity, r['amount'], r['unit'])
                 r['all_units'] = converted_units
 
         for r in result:
@@ -127,7 +129,7 @@ class UnitExpressionExtractor:
                 item = self._get_item(tagged, unit_i)
                 amount = self.extract_number(amount)
                 marker, span = self._get_marker_and_span(tagged, item, unit_i, amount_i)
-                spans.add((unit_uuid, translate_quantity_to_farsi(quantity), amount, unit, item, marker, span,
+                spans.add((unit_uuid, translate_quantity_to_farsi(quantity), amount, standard_name, item, marker, span,
                            standard_name))
         return spans
 

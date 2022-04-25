@@ -12,7 +12,7 @@ class TestUnitExtractor(unittest.TestCase):
              'marker': '۳.۵ کیلو گرم آرد',
              'span': (4, 20),
              'type': 'وزن',
-             'unit': 'کیلو گرم'}
+             'unit': 'کیلو‌گرم'}
         ]
         self.assertEqual(expected[0], result[0])
 
@@ -36,7 +36,7 @@ class TestUnitExtractor(unittest.TestCase):
              'span': (17, 40),
              'marker': 'صد و بیست و سه کیلو وات',
              'type': 'توان',
-             'unit': 'کیلو وات'}
+             'unit': 'کیلو‌وات'}
         ]
         self.assertEqual(result[0], expected[0])
 
@@ -67,7 +67,7 @@ class TestUnitExtractor(unittest.TestCase):
              'span': (4, 19),
              'marker': '۳.۵ کیلوگرم آرد',
              'type': 'وزن',
-             'unit': 'کیلوگرم'}
+             'unit': 'کیلو‌گرم'}
         ]
         expected = expected_list[0]
         expected2 = expected_list[1]
@@ -96,7 +96,7 @@ class TestUnitExtractor(unittest.TestCase):
              'span': (4, 19),
              'marker': '۳.۵ کیلوگرم آرد',
              'type': 'وزن',
-             'unit': 'کیلوگرم'}
+             'unit': 'کیلو‌گرم'}
         ]
         expected = expected_list[0]
         expected2 = expected_list[1]
@@ -143,6 +143,6 @@ class TestUnitExtractor(unittest.TestCase):
              'marker': '200 میلی گرم',
              'span': (12, 24),
              'type': 'وزن',
-             'unit': 'میلی گرم'}
+             'unit': 'میلی‌گرم'}
         ]
         self.assertEqual(expected[0], result[0])
