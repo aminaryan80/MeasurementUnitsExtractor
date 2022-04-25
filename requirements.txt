@@ -1,8 +1,4 @@
-requests==2.27.1
+requests
 beautifulsoup4==4.11.1
-pandas==1.4.2
+pandas
 hazm~=0.7.0
-tqdm
-camel-tools
-Tashaphyne
-parstdex~=1.1.0

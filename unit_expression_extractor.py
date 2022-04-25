@@ -63,7 +63,7 @@ class UnitExpressionExtractor:
         return result
 
     def _extract_result(self, input_sentence):
-        return *self._extract_quantity_based_result(input_sentence), *self._extract_unit_based_result(input_sentence)
+        return [*self._extract_quantity_based_result(input_sentence), *self._extract_unit_based_result(input_sentence)]
 
     def _extract_quantity_based_result(self, input_sentence):
         spans = set()
