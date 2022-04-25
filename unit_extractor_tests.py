@@ -83,8 +83,8 @@ class TestUnitExtractor(unittest.TestCase):
         self.assertEqual(result2, expected2)
 
     def test_6(self):
-        result = UnitExpressionExtractor().run('علی ۳.۵ کیلوگرم آرد خرید و باتری خود را با نیروی زیاد شارژ کرد.')
-        expected = [
+        result_list = UnitExpressionExtractor().run('علی ۳.۵ کیلوگرم آرد خرید و باتری خود را با نیروی زیاد شارژ کرد.')
+        expected_list = [
             {'amount': '',
              'item': '',
              'marker': 'نیروی زیاد',
@@ -98,8 +98,18 @@ class TestUnitExtractor(unittest.TestCase):
              'type': 'وزن',
              'unit': 'کیلوگرم'}
         ]
-        self.assertEqual(result[0], expected[0])
-        self.assertEqual(result[1], expected[1])
+        expected = expected_list[0]
+        expected2 = expected_list[1]
+        if expected['type'] != 'وزن':
+            expected = expected_list[1]
+            expected2 = expected_list[0]
+        result = result_list[0]
+        result2 = result_list[1]
+        if result['type'] != 'وزن':
+            result = result_list[1]
+            result2 = result_list[0]
+        self.assertEqual(result, expected)
+        self.assertEqual(result2, expected2)
 
     def test_7(self):
         result = UnitExpressionExtractor().run('جرم یک شهاب سنگ ۲۵۰ تن است.')
