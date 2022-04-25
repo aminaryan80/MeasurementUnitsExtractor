@@ -22,7 +22,14 @@ QUANTITIES = {
 }
 
 
-def translate_quantity(quantity: str):
+def translate_quantity_to_farsi(quantity: str):
     if quantity in QUANTITIES.keys():
         return QUANTITIES[quantity]
+    return quantity
+
+
+def translate_quantity_to_english(quantity: str):
+    for value, key in QUANTITIES.items():
+        if key == quantity:
+            return value
     return quantity

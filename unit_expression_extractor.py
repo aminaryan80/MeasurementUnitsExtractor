@@ -1,6 +1,5 @@
 import json
 import uuid
-from pprint import pprint
 from typing import List, Tuple, Any
 
 import pandas as pd
@@ -8,7 +7,7 @@ from hazm import POSTagger, word_tokenize
 
 from unit_scraper import UNIT_FILE
 from utils.number_extractor import FixedNumberExtractor
-from utils.quantity_translator import translate_quantity, QUANTITIES
+from utils.quantity_translator import translate_quantity_to_farsi, translate_quantity_to_english, QUANTITIES
 from utils.unit_cleaner import V_SPACE, SPACE
 
 descriptive_units = 'زیاد|کم'
@@ -26,7 +25,7 @@ class UnitExpressionExtractor:
         except ValueError:
             return 0
 
-    def run(self, input_sentence):
+    def run(self, input_sentence, do_conversion=False):
         print(input_sentence)
         result = []
         spans = self._extract_result(input_sentence)
@@ -37,8 +36,28 @@ class UnitExpressionExtractor:
                 'unit': span[3],
                 'item': span[4],
                 'marker': span[5],
-                'span': span[6]
+                'span': span[6],
+                'true_form_unit': span[7]
             })
+        if do_conversion:
+            for r in result:
+                quantity = translate_quantity_to_english(r['type'])
+                converted_units = self._get_units_quantity(quantity, r['amount'], r['true_form_unit'])
+                r['all_units'] = converted_units
+                del r['true_form_unit']
+
+        return result
+
+    def _get_units_quantity(self, quantity: str, amount: float, true_form_unit: str):
+        df = pd.read_csv(UNIT_FILE)
+        df = df[df['quantity'] == quantity]
+        result = list()
+        main_amount = amount / df[df['unit'] == true_form_unit].iloc[0].conversion_factor
+        for row in df.iloc:
+            unit_amount = dict(amount=0.0, name='')
+            unit_amount['amount'] = round(main_amount * float(row.conversion_factor), 10)
+            unit_amount['name'] = row.unit
+            result.append(unit_amount)
         return result
 
     def _extract_result(self, input_sentence):
@@ -74,17 +93,19 @@ class UnitExpressionExtractor:
                         marker += f' {tagged[i][0]}'
                         continue
                     break
+                if marker == real_quantity:
+                    continue
                 start_index = len(' '.join([tagged[i][0] for i in range(0, quantity_i)])) + 1
                 end_index = start_index + len(marker)
                 span = (start_index, end_index)
-                spans.add((quantity_uuid, quantity, '', '', '', marker.strip(), span))
+                spans.add((quantity_uuid, quantity, '', '', '', marker.strip(), span, ''))
         return spans
 
     def _extract_unit_based_result(self, input_sentence):
         spans = set()
         founded_unit_spans = set()
         tagged = self.tagger.tag(word_tokenize(input_sentence))
-        for is_spaced, unit, true_form_unit, quantity in self._get_units():
+        for is_spaced, unit, true_form_unit, quantity in self._get_all_units():
             if unit not in input_sentence:
                 continue
             unit_uuid = str(uuid.uuid4())
@@ -104,7 +125,8 @@ class UnitExpressionExtractor:
                 item = self._get_item(tagged, unit_i)
                 amount = self.extract_number(amount)
                 marker, span = self._get_marker_and_span(tagged, item, unit_i, amount_i)
-                spans.add((unit_uuid, translate_quantity(quantity), amount, unit, item, marker, span))
+                spans.add((unit_uuid, translate_quantity_to_farsi(quantity), amount, unit, item, marker, span,
+                           true_form_unit))
         return spans
 
     def _get_quantities(self):
@@ -113,7 +135,7 @@ class UnitExpressionExtractor:
                 yield True, quantity
             yield False, quantity
 
-    def _get_units(self):
+    def _get_all_units(self):
         df = pd.read_csv(UNIT_FILE)
         for row in df.iloc:
             all_units = json.loads(row.all_names)
@@ -158,7 +180,7 @@ class UnitExpressionExtractor:
             if start_i <= j:
                 sentence.append(tagged[j][0])
         sentence.reverse()
-        return (start_span, end_span - 1), ' '.join(sentence)
+        return ' '.join(sentence), (start_span, end_span - 1)
 
     def _is_there_sub_unit(self, founded_unit_spans, spans, input_sentence, unit):
         is_sub_unit = False
