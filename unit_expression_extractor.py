@@ -11,7 +11,7 @@ from utils.quantity_translator import translate_quantity_to_farsi, translate_qua
 from utils.unit_cleaner import V_SPACE, SPACE
 
 descriptive_units = 'زیاد|کم'
-compound_verbs = 'کرد|ساخت|نهاد|داد|زد|خورد|برد|آورد|رفت|آمد|داشت|گرفت|دید|کشید|بست|خواست|شد|گشت|یافت'
+compound_verbs = 'کند|کرد|ساخت|نهاد|داد|زد|خورد|برد|آورد|رفت|آمد|داشت|گرفت|دید|کشید|بست|خواست|شد|گشت|یافت'
 
 
 class UnitExpressionExtractor:
@@ -177,10 +177,15 @@ class UnitExpressionExtractor:
             i += 1
         for j in range(i, -1, -1):
             end_span += len(tagged[j][0]) + 1
-            if start_i > j:
-                start_span += len(tagged[j][0]) + 1
             if start_i <= j:
                 sentence.append(tagged[j][0])
+            if start_i > j:
+                start_span += len(tagged[j][0]) + 1
+            if j == start_i - 1:
+                if any(tagged[j][0] in quantity for quantity in QUANTITIES.values()):
+                    sentence.append(tagged[j][0])
+                    start_span -= len(tagged[j][0]) + 1
+
         sentence.reverse()
         return ' '.join(sentence), (start_span, end_span - 1)
 

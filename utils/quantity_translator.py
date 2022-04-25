@@ -6,6 +6,7 @@ QUANTITIES = {
     'Temperature': 'دما',
     'Area': 'مساحت',
     'Speed': 'سرعت',
+    'velocity': 'تندی',
     'Force': 'نیرو',
     'Energy': 'انرژی',
     'Power': 'توان',
