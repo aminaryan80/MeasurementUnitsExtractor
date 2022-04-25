@@ -107,7 +107,7 @@ class UnitExpressionExtractor:
         spans = set()
         founded_unit_spans = set()
         tagged = self.tagger.tag(word_tokenize(input_sentence))
-        for is_spaced, unit, true_form_unit, quantity in self._get_all_units():
+        for is_spaced, unit, standard_name, quantity in self._get_all_units():
             if unit not in input_sentence:
                 continue
             unit_uuid = str(uuid.uuid4())
@@ -127,8 +127,8 @@ class UnitExpressionExtractor:
                 item = self._get_item(tagged, unit_i)
                 amount = self.extract_number(amount)
                 marker, span = self._get_marker_and_span(tagged, item, unit_i, amount_i)
-                spans.add((unit_uuid, translate_quantity_to_farsi(quantity), amount, unit, item, marker, span,
-                           true_form_unit))
+                spans.add((unit_uuid, translate_quantity_to_farsi(quantity), amount, standard_name, item, marker, span,
+                           standard_name))
         return spans
 
     def _get_quantities(self):
@@ -143,10 +143,10 @@ class UnitExpressionExtractor:
             all_units = json.loads(row.all_names)
             for unit in all_units:
                 unit: str
-                yield False, unit, unit, row.quantity
+                yield False, unit, row.unit, row.quantity
                 if len(unit.split(V_SPACE)) == 2:
-                    yield False, unit.replace(V_SPACE, ''), unit.replace(V_SPACE, ''), row.quantity
-                    yield True, unit.replace(V_SPACE, SPACE), unit, row.quantity
+                    yield False, unit.replace(V_SPACE, ''), row.unit, row.quantity
+                    yield True, unit.replace(V_SPACE, SPACE), row.unit, row.quantity
 
     def _is_next_verb_compound(self, tagged: List[Tuple[Any, str]], index):
         previous_verb_index = ([i for i in range(0, index) if tagged[i][1] == 'V'] or [0])[-1]
