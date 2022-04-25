@@ -44,7 +44,9 @@ class UnitExpressionExtractor:
                 quantity = translate_quantity_to_english(r['type'])
                 converted_units = self._get_units_quantity(quantity, r['amount'], r['true_form_unit'])
                 r['all_units'] = converted_units
-                del r['true_form_unit']
+
+        for r in result:
+            del r['true_form_unit']
 
         return result
 
@@ -159,7 +161,7 @@ class UnitExpressionExtractor:
         least_i = index
         for i in range(index - 1, -1, -1):
             word_pos = tagged[i]
-            if 'NUM' in word_pos[1] or 'CONJ' == word_pos[1]:
+            if 'NUM' in word_pos[1] or 'CONJ' == word_pos[1] or word_pos[1] == 'P':
                 result.append(word_pos[0])
             else:
                 break
