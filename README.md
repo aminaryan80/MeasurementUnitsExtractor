@@ -19,7 +19,8 @@ result = extractor.run('علی باتری خود را هشتاد و پنج صد�
 ```
 
 ### Contributors
-| :---: |
-| Mohammadamin Aryan |
-| Yalda Shabanzadeh |
-| Karaneh Keypour |
+| Members |
+| :---:   |
+| `Mohammadamin Aryan`  |
+| `Yalda Shabanzadeh` |
+| `Karaneh Keypour`  |
